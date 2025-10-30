@@ -1,35 +1,54 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
-import React from 'react';
-
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+import { Platform } from 'react-native';
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
-  return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
-        }}
-      />
-      <Tabs.Screen
-        name="explore"
-        options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
-        }}
-      />
-    </Tabs>
-  );
+    return (
+        <Tabs
+            screenOptions={{
+                tabBarActiveTintColor: '#2196F3',
+                tabBarInactiveTintColor: '#999999',
+                tabBarStyle: {
+                    backgroundColor: '#ffffff',
+                    borderTopWidth: 1,
+                    borderTopColor: '#e0e0e0',
+                    height: Platform.OS === 'android' ? 70 : 60,
+                    paddingBottom: Platform.OS === 'android' ? 12 : 8,
+                    paddingTop: 8,
+                },
+                tabBarLabelStyle: {
+                    fontSize: 12,
+                    fontWeight: '600',
+                },
+                headerStyle: {
+                    backgroundColor: '#2196F3',
+                },
+                headerTintColor: '#ffffff',
+                headerTitleStyle: {
+                    fontWeight: 'bold',
+                },
+            }}
+        >
+            <Tabs.Screen
+                name="index"
+                options={{
+                    title: 'Monitoramento',
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons name="water" size={size} color={color} />
+                    ),
+                    headerTitle: 'Nível do Tanque',
+                }}
+            />
+            <Tabs.Screen
+                name="fish"
+                options={{
+                    title: 'Peixes',
+                    tabBarIcon: ({ color, size }) => (
+                        <Ionicons name="fish" size={size} color={color} />
+                    ),
+                    headerTitle: 'Gestão de Peixes',
+                }}
+            />
+        </Tabs>
+    );
 }
