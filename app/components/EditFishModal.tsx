@@ -8,41 +8,47 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
-import { Tank } from '../types/Fish';
+import { Fish, Tank } from '../types/Fish';
 
-interface AddFishModalProps {
+interface EditFishModalProps {
     visible: boolean;
-    onClose: () => void;
-    onAdd: (species: string, age: number, size: number, tankId?: number) => Promise<void>;
+    fish: Fish | null;
     tanks: Tank[];
+    onClose: () => void;
+    onEdit: (id: number, species: string, age: number, size: number, tankId?: number) => Promise<void>;
 }
 
-export function AddFishModal({ visible, onClose, onAdd, tanks }: AddFishModalProps) {
-    const [species, setSpecies] = useState<string>('');
-    const [age, setAge] = useState<string>('');
-    const [size, setSize] = useState<string>('');
-    const [selectedTankId, setSelectedTankId] = useState<number | undefined>(undefined);
+export function EditFishModal({ visible, fish, tanks, onClose, onEdit }: EditFishModalProps) {
+    const [species, setSpecies] = useState(fish?.species || '');
+    const [age, setAge] = useState(fish?.age.toString() || '');
+    const [size, setSize] = useState(fish?.size.toString() || '');
+    const [selectedTankId, setSelectedTankId] = useState<number | undefined>(fish?.tankId);
     const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Debug: verificar se tanks está sendo recebido
     React.useEffect(() => {
-        console.log('AddFishModal - Tanks recebidos:', tanks);
-        console.log('AddFishModal - Quantidade de tanks:', tanks.length);
+        console.log('EditFishModal - Tanks recebidos:', tanks);
+        console.log('EditFishModal - Quantidade de tanks:', tanks.length);
     }, [tanks]);
 
-    async function handleAdd() {
-        if (species && age && size && !isSubmitting) {
+    React.useEffect(() => {
+        if (fish) {
+            setSpecies(fish.species);
+            setAge(fish.age.toString());
+            setSize(fish.size.toString());
+            setSelectedTankId(fish.tankId);
+        }
+    }, [fish]);
+
+    async function handleEdit() {
+        if (fish && species && age && size && !isSubmitting) {
             try {
                 setIsSubmitting(true);
-                await onAdd(species, parseInt(age), parseFloat(size), selectedTankId);
-                setSpecies('');
-                setAge('');
-                setSize('');
-                setSelectedTankId(undefined);
+                await onEdit(fish.id, species, parseInt(age), parseFloat(size), selectedTankId);
                 onClose();
             } catch (error) {
-                console.error('Error in AddFishModal:', error);
-                alert('Erro ao adicionar peixe. Tente novamente.');
+                console.error('Error in EditFishModal:', error);
+                alert('Erro ao editar peixe. Tente novamente.');
             } finally {
                 setIsSubmitting(false);
             }
@@ -54,7 +60,7 @@ export function AddFishModal({ visible, onClose, onAdd, tanks }: AddFishModalPro
             <View style={styles.overlay}>
                 <View style={styles.container}>
                     <ScrollView showsVerticalScrollIndicator={false}>
-                        <Text style={styles.title}>Cadastrar Peixe</Text>
+                        <Text style={styles.title}>Editar Peixe</Text>
 
                         <Text style={styles.label}>Espécie</Text>
                         <TextInput
@@ -120,22 +126,22 @@ export function AddFishModal({ visible, onClose, onAdd, tanks }: AddFishModalPro
                                 </TouchableOpacity>
                             ))}
                         </View>
-
-                        <View style={styles.buttonContainer}>
-                            <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
-                                <Text style={styles.cancelButtonText}>Cancelar</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity
-                                style={[styles.addButton, isSubmitting && styles.addButtonDisabled]}
-                                onPress={handleAdd}
-                                disabled={isSubmitting}
-                            >
-                                <Text style={styles.addButtonText}>
-                                    {isSubmitting ? 'Adicionando...' : 'Adicionar'}
-                                </Text>
-                            </TouchableOpacity>
-                        </View>
                     </ScrollView>
+
+                    <View style={styles.buttonContainer}>
+                        <TouchableOpacity style={styles.cancelButton} onPress={onClose}>
+                            <Text style={styles.cancelButtonText}>Cancelar</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity
+                            style={[styles.saveButton, isSubmitting && styles.saveButtonDisabled]}
+                            onPress={handleEdit}
+                            disabled={isSubmitting}
+                        >
+                            <Text style={styles.saveButtonText}>
+                                {isSubmitting ? 'Salvando...' : 'Salvar'}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
                 </View>
             </View>
         </Modal>
@@ -151,7 +157,6 @@ const styles = StyleSheet.create({
     },
     container: {
         width: '90%',
-        maxHeight: '80%',
         backgroundColor: '#ffffff',
         borderRadius: 16,
         padding: 24,
@@ -178,33 +183,6 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#333333',
     },
-    tankSelector: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 8,
-        marginTop: 8,
-    },
-    tankOption: {
-        paddingHorizontal: 16,
-        paddingVertical: 10,
-        borderRadius: 20,
-        borderWidth: 1,
-        borderColor: '#e0e0e0',
-        backgroundColor: '#f5f5f5',
-    },
-    tankOptionSelected: {
-        backgroundColor: '#2196F3',
-        borderColor: '#2196F3',
-    },
-    tankOptionText: {
-        fontSize: 14,
-        color: '#666666',
-        fontWeight: '500',
-    },
-    tankOptionTextSelected: {
-        color: '#ffffff',
-        fontWeight: '600',
-    },
     buttonContainer: {
         flexDirection: 'row',
         justifyContent: 'space-between',
@@ -224,19 +202,43 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: '#666666',
     },
-    addButton: {
+    saveButton: {
         flex: 1,
         padding: 14,
         borderRadius: 8,
-        backgroundColor: '#2196F3',
+        backgroundColor: '#4CAF50',
         alignItems: 'center',
     },
-    addButtonDisabled: {
+    saveButtonDisabled: {
         backgroundColor: '#B0BEC5',
     },
-    addButtonText: {
+    saveButtonText: {
         fontSize: 16,
         fontWeight: '600',
+        color: '#ffffff',
+    },
+    tankSelector: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+        marginTop: 8,
+    },
+    tankOption: {
+        padding: 12,
+        borderWidth: 1,
+        borderColor: '#e0e0e0',
+        borderRadius: 8,
+        backgroundColor: '#ffffff',
+    },
+    tankOptionSelected: {
+        backgroundColor: '#2196F3',
+        borderColor: '#2196F3',
+    },
+    tankOptionText: {
+        fontSize: 14,
+        color: '#666666',
+    },
+    tankOptionTextSelected: {
         color: '#ffffff',
     },
 });

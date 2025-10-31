@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { Tabs } from 'expo-router';
 import { Platform } from 'react-native';
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 
 export default function TabLayout() {
     return (
@@ -47,6 +48,16 @@ export default function TabLayout() {
                         <Ionicons name="fish" size={size} color={color} />
                     ),
                     headerTitle: 'Gestão de Peixes',
+                }}
+            />
+            <Tabs.Screen
+                name="tanks"
+                options={{
+                    title: 'Tanques',
+                    tabBarIcon: ({ color, size }) => (
+                        <MaterialIcons name="water-damage" size={size} color={color} />
+                    ),
+                    headerTitle: 'Gestão de Tanques',
                 }}
             />
         </Tabs>
